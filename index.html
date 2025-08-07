@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mom's Diary!!</title>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'EB Garamond', serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #fdfcfb, #e2d1c3);
+      color: #2e2e2e;
+    }
+    header {
+      background: #4e3d42;
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 2.5rem;
+      margin: 0;
+    }
+    main {
+      max-width: 700px;
+      margin: 2rem auto;
+      padding: 1rem;
+    }
+    input, textarea, select, button {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+    article {
+      background: white;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .author {
+      font-style: italic;
+      color: #555;
+    }
+    button.edit-btn, button.delete-btn {
+      margin-right: 1rem;
+      background-color: #888;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button.delete-btn {
+      background-color: #c0392b;
+    }
+    button.edit-btn:hover {
+      background-color: #555;
+    }
+    button.delete-btn:hover {
+      background-color: #a93226;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Mom's Diary!!</h1>
+    <p>Write your thoughts and share from the heart.</p>
+  </header>
+  <main>
+    <input type="text" id="title" placeholder="Title" />
+    <input type="text" id="author" placeholder="Author" />
+    <textarea id="content" rows="5" placeholder="Write your poem or article..."></textarea>
+    <select id="type">
+      <option value="poem">Poem</option>
+      <option value="article">Article</option>
+    </select>
+    <button onclick="savePost()">📌 Post</button>
+    <div id="posts"></div>
+  </main>
+
+  <script>
+    let editingId = null;
+
+    function savePost() {
+      const title = document.getElementById('title').value;
+      const author = document.getElementById('author').value;
+      const content = document.getElementById('content').value;
+      const type = document.getElementById('type').value;
+
+      if (!title || !author || !content) {
+        alert('All fields are required.');
+        return;
+      }
+
+      let posts = JSON.parse(localStorage.getItem('posts') || '[]');
+
+      if (editingId !== null) {
+        posts = posts.map(post => post.id === editingId ? { ...post, title, author, content, type } : post);
+        editingId = null;
+      } else {
+        posts.push({ id: Date.now(), title, author, content, type });
+      }
+
+      localStorage.setItem('posts', JSON.stringify(posts));
+      document.getElementById('title').value = '';
+      document.getElementById('author').value = '';
+      document.getElementById('content').value = '';
+      renderPosts();
+    }
+
+    function deletePost(id) {
+      let posts = JSON.parse(localStorage.getItem('posts') || '[]');
+      posts = posts.filter(p => p.id !== id);
+      localStorage.setItem('posts', JSON.stringify(posts));
+      renderPosts();
+    }
+
+    function editPost(id) {
+      const posts = JSON.parse(localStorage.getItem('posts') || '[]');
+      const post = posts.find(p => p.id === id);
+      document.getElementById('title').value = post.title;
+      document.getElementById('author').value = post.author;
+      document.getElementById('content').value = post.content;
+      document.getElementById('type').value = post.type;
+      editingId = id;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderPosts() {
+      const container = document.getElementById('posts');
+      container.innerHTML = '';
+      const posts = JSON.parse(localStorage.getItem('posts') || '[]');
+      posts.forEach(post => {
+        const div = document.createElement('article');
+        div.innerHTML = `
+          <h3>${post.title}</h3>
+          <p class="author">By ${post.author}</p>
+          <p>${post.content.replace(/\n/g, '<br>')}</p>
+          <button class="edit-btn" onclick="editPost(${post.id})">Edit</button>
+          <button class="delete-btn" onclick="deletePost(${post.id})">Delete</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    renderPosts();
+  </script>
+</body>
+</html>
