@@ -1,48 +1,402 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Mom's Diary!!</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Mom's Diary</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=Lora:ital@0;1&display=swap" rel="stylesheet" />
   <style>
-    body { font-family: 'serif'; padding: 1rem; background-color: #fff8f0; color: #4b2e2e; }
-    h1 { color: #8e5d5d; }
-    textarea, input { width: 100%; margin: 0.5rem 0; padding: 0.5rem; }
-    button { background: #8e5d5d; color: white; padding: 0.5rem 1rem; border: none; }
-    article { border: 1px solid #ddd; padding: 1rem; margin-top: 1rem; background: #fff; }
+    /* ── CSS Variables ── */
+    :root {
+      --bg:        #fff8f0;
+      --card:      #ffffff;
+      --primary:   #8e5d5d;
+      --primary-dk:#6e3d3d;
+      --text:      #4b2e2e;
+      --muted:     #9e7a7a;
+      --border:    #e8d5c4;
+      --accent:    #f5e6d8;
+      --danger:    #c0392b;
+      --danger-dk: #962d22;
+      --radius:    10px;
+      --shadow:    0 2px 12px rgba(142,93,93,0.10);
+    }
+
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 1.5rem 1rem 3rem;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    header h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 2rem;
+      color: var(--primary);
+      letter-spacing: 0.02em;
+    }
+    header p.subtitle {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-style: italic;
+      margin-top: 0.25rem;
+    }
+
+    /* ── Form Card ── */
+    .form-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+    }
+
+    .form-card h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.1rem;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: 'Lora', Georgia, serif;
+      font-size: 0.95rem;
+      color: var(--text);
+      background: var(--accent);
+      margin-bottom: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+    input:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(142,93,93,0.12);
+      background: #fff;
+    }
+
+    textarea {
+      height: 120px;
+      resize: vertical;
+    }
+
+    /* ── Error Message ── */
+    .error-msg {
+      display: none;
+      color: var(--danger);
+      font-size: 0.82rem;
+      margin-bottom: 0.75rem;
+      font-style: italic;
+    }
+    .error-msg.visible { display: block; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-block;
+      padding: 0.6rem 1.4rem;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Lora', Georgia, serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      width: 100%;
+      margin-top: 0.25rem;
+    }
+    .btn-primary:hover { background: var(--primary-dk); }
+
+    .btn-delete {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      font-size: 0.78rem;
+      padding: 0.3rem 0.75rem;
+    }
+    .btn-delete:hover { background: var(--danger); color: #fff; }
+
+    /* ── Posts Section ── */
+    #posts-section h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.1rem;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+
+    .empty-msg {
+      text-align: center;
+      color: var(--muted);
+      font-style: italic;
+      font-size: 0.9rem;
+      padding: 2rem 0;
+    }
+
+    /* ── Post Card ── */
+    article.post-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem 1.2rem 1rem;
+      margin-bottom: 1.2rem;
+      box-shadow: var(--shadow);
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .post-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+    }
+
+    .post-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.05rem;
+      color: var(--primary-dk);
+    }
+
+    .post-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 0.75rem;
+    }
+
+    .post-content {
+      font-size: 0.92rem;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      color: var(--text);
+      border-top: 1px solid var(--border);
+      padding-top: 0.75rem;
+    }
+
+    .post-footer {
+      margin-top: 0.9rem;
+      text-align: right;
+    }
+
+    /* ── Divider ── */
+    hr.divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.5rem 0;
+    }
   </style>
 </head>
 <body>
-  <h1>Mom's Diary!!</h1>
-  <input id="title" placeholder="Title" />
-  <input id="author" placeholder="Author" />
-  <textarea id="content" placeholder="Your poetry or article..."></textarea>
-  <button onclick="savePost()">Save</button>
-  <div id="posts"></div>
-  <script>
-    const title = document.getElementById("title");
-    const author = document.getElementById("author");
-    const content = document.getElementById("content");
-    const postsDiv = document.getElementById("posts");
 
+  <header>
+    <h1>📖 Mom's Diary</h1>
+    <p class="subtitle">A quiet place for thoughts, poems & memories</p>
+  </header>
+
+  <!-- Write a new entry -->
+  <div class="form-card">
+    <h2>✍️ New Entry</h2>
+
+    <label for="title">Title</label>
+    <input id="title" type="text" placeholder="Give your entry a title…" maxlength="100" />
+
+    <label for="author">Author</label>
+    <input id="author" type="text" placeholder="Your name…" maxlength="60" />
+
+    <label for="content">Your poetry or article</label>
+    <textarea id="content" placeholder="Write your thoughts here…" maxlength="5000"></textarea>
+
+    <!-- Validation error shown here -->
+    <p id="error-msg" class="error-msg" role="alert"></p>
+
+    <button class="btn btn-primary" onclick="savePost()">Save Entry</button>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- Saved entries -->
+  <section id="posts-section">
+    <h2>📚 Saved Entries</h2>
+    <div id="posts"></div>
+  </section>
+
+  <script>
+    // ── Element references ──
+    const titleInput   = document.getElementById("title");
+    const authorInput  = document.getElementById("author");
+    const contentInput = document.getElementById("content");
+    const postsDiv     = document.getElementById("posts");
+    const errorMsg     = document.getElementById("error-msg");
+
+    // ── Helpers ──
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorMsg.classList.add("visible");
+    }
+    function clearError() {
+      errorMsg.textContent = "";
+      errorMsg.classList.remove("visible");
+    }
+
+    // ── Load posts from localStorage ──
+    function getPosts() {
+      try {
+        return JSON.parse(localStorage.getItem("momsDiaryPosts") || "[]");
+      } catch (e) {
+        return [];
+      }
+    }
+
+    // ── Save posts to localStorage ──
+    function savePosts(posts) {
+      localStorage.setItem("momsDiaryPosts", JSON.stringify(posts));
+    }
+
+    // ── Save a new post ──
     function savePost() {
-      const posts = JSON.parse(localStorage.getItem("posts") || "[]");
-      posts.push({ title: title.value, author: author.value, content: content.value });
-      localStorage.setItem("posts", JSON.stringify(posts));
-      title.value = ""; author.value = ""; content.value = "";
+      clearError();
+
+      const title   = titleInput.value.trim();
+      const author  = authorInput.value.trim();
+      const content = contentInput.value.trim();
+
+      // ── Input validation ──
+      if (!title) {
+        showError("Please enter a title for your entry.");
+        titleInput.focus();
+        return;
+      }
+      if (!content) {
+        showError("Please write something before saving.");
+        contentInput.focus();
+        return;
+      }
+
+      const posts = getPosts();
+      posts.unshift({                          // unshift = newest first
+        id:      Date.now(),
+        title:   title,
+        author:  author || "Anonymous",
+        content: content,
+        date:    new Date().toLocaleString("en-IN", {
+                   day: "numeric", month: "long", year: "numeric",
+                   hour: "2-digit", minute: "2-digit"
+                 })
+      });
+      savePosts(posts);
+
+      // Clear fields
+      titleInput.value   = "";
+      authorInput.value  = "";
+      contentInput.value = "";
+
       renderPosts();
     }
 
+    // ── Delete a post by id ──
+    function deletePost(id) {
+      if (!confirm("Delete this entry? This cannot be undone.")) return;
+      const posts = getPosts().filter(p => p.id !== id);
+      savePosts(posts);
+      renderPosts();
+    }
+
+    // ── Render all posts safely (no innerHTML with user data) ──
     function renderPosts() {
-      const posts = JSON.parse(localStorage.getItem("posts") || "[]");
+      const posts = getPosts();
       postsDiv.innerHTML = "";
+
+      if (posts.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "empty-msg";
+        empty.textContent = "No entries yet — write your first one above!";
+        postsDiv.appendChild(empty);
+        return;
+      }
+
       posts.forEach(post => {
-        const div = document.createElement("article");
-        div.innerHTML = "<h3>" + post.title + "</h3><p><i>By " + post.author + "</i></p><p>" + post.content + "</p>";
-        postsDiv.appendChild(div);
+        const article = document.createElement("article");
+        article.className = "post-card";
+
+        // Header row (title + delete button)
+        const header = document.createElement("div");
+        header.className = "post-header";
+
+        const titleEl = document.createElement("h3");
+        titleEl.className = "post-title";
+        titleEl.textContent = post.title;          // ✅ textContent — safe
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "btn btn-delete";
+        deleteBtn.textContent = "Delete";
+        deleteBtn.onclick = () => deletePost(post.id);
+
+        header.appendChild(titleEl);
+        header.appendChild(deleteBtn);
+
+        // Meta (author + date)
+        const meta = document.createElement("p");
+        meta.className = "post-meta";
+        meta.textContent = "By " + post.author + "  ·  " + post.date;  // ✅ safe
+
+        // Content body
+        const body = document.createElement("p");
+        body.className = "post-content";
+        body.textContent = post.content;           // ✅ textContent — safe
+
+        const footer = document.createElement("div");
+        footer.className = "post-footer";
+        footer.appendChild(deleteBtn);   // move delete to footer
+
+        article.appendChild(header);
+        article.appendChild(meta);
+        article.appendChild(body);
+        article.appendChild(footer);
+        postsDiv.appendChild(article);
       });
     }
 
+    // ── Allow Ctrl+Enter / Cmd+Enter to save ──
+    contentInput.addEventListener("keydown", function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") savePost();
+    });
+
+    // ── Initial render ──
+    renderPosts();
+  </script>
+
+</body>
+</html>
     renderPosts();
   </script>
 </body>
